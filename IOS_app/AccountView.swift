@@ -34,15 +34,15 @@ struct AccountView: View {
                     
                     Section(header: Text("Payment Settings")) {
                         Picker(selection: self.$selectedCurrency, label: Text("Currency")) {
-                                         ForEach(0 ..< self.currencyArray.count) {
-                                                  Text(self.currencyArray[$0]).tag($0)
-                                            }
+                            ForEach(currencyArray.indices, id: \.self) { index in
+                                Text(self.currencyArray[index]).tag(index)
+                            }
                         }
-                        
+
                         Picker(selection: self.$selectedPaymentMethod, label: Text("Payment Method")) {
-                                  ForEach(0 ..< self.paymentMethodArray.count) {
-                                       Text(self.paymentMethodArray[$0]).tag($0)
-                                     }
+                            ForEach(paymentMethodArray.indices, id: \.self) { index in
+                                Text(self.paymentMethodArray[index]).tag(index)
+                            }
                         }
                         Button(action: {
                             print("Button tapped")

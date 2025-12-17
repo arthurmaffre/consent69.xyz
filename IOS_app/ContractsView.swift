@@ -267,12 +267,14 @@ struct ConsentTypeCardView: View {
                 
                 Spacer()
                 
-                Text("\(type.maxPartners)")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(.primary)
-                + Text(" partners")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text("\(type.maxPartners)")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    Text("partners")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .padding(16)

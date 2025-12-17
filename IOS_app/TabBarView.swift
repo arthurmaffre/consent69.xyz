@@ -23,9 +23,8 @@ struct TabbarView: View {
             }
             
             // NOUVELLE VUE : Remplace l'ancienne ActivitiesCartView complètement
-            NavigationView {
-                QRScanConsentView()  // Pas de params, indépendant des mocks
-            }
+            // Pas de NavigationView ici car QRScanConsentView a déjà le sien
+            QRScanConsentView()
             .tag(1)
             .tabItem {
                 Image(systemName: "qrcode.viewfinder")  // Icône scanner QR

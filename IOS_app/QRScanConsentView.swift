@@ -46,14 +46,15 @@ struct QRScanConsentView: View {
         NavigationView {
             ZStack {
                 // Camera preview en fond (plein écran, toujours visible si autorisé)
-                if cameraPermission == .authorized && scannerError == nil {
+                // Ajout d'un check hasCheckedPermission pour éviter le pré-chargement
+                if cameraPermission == .authorized && scannerError == nil && hasCheckedPermission {
                     QRScannerView(
                         scannedCode: $scannedCode,
                         torchIsOn: $torchIsOn,
                         isPaused: $isPaused
                     )
                     .ignoresSafeArea()
-                    .onChange(of: scannedCode) { newCode in
+                    .onChange(of: scannedCode) { _, newCode in
                         handleScanResult(newCode)
                     }
                 } else {
@@ -233,7 +234,7 @@ struct QRScanConsentView: View {
             impact.impactOccurred()
             // Pause le scanner après scan (optionnel)
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                showScanner = false
+                isPaused = true
             }
         } else {
             // Pas de match : alerte
@@ -252,9 +253,7 @@ struct QRScanConsentView: View {
         #if targetEnvironment(simulator)
         scannerError = "Scanner indisponible sur simulateur. Utilisez un device physique."
         print("DEBUG: Running on simulator - QR scanner disabled.")
-        return
-        #endif
-
+        #else
         // Check le statut actuel des permissions
         let currentStatus = AVCaptureDevice.authorizationStatus(for: .video)
 
@@ -289,6 +288,7 @@ struct QRScanConsentView: View {
         @unknown default:
             break
         }
+        #endif
     }
 }
 
@@ -356,12 +356,17 @@ class QRScanner: UIView, AVCaptureMetadataOutputObjectsDelegate {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupScanner()
+        // Délai pour laisser l'UI se stabiliser avant de configurer la caméra
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.setupScanner()
+        }
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setupScanner()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.setupScanner()
+        }
     }
 
     private func setupScanner() {
@@ -416,10 +421,14 @@ class QRScanner: UIView, AVCaptureMetadataOutputObjectsDelegate {
                 self.previewLayer = layer
             }
 
-            // Démarrage de la session
-            session.startRunning()
-            self.isSessionRunning = session.isRunning
-            print("DEBUG: QR Scanner session started.")
+            // Démarrage de la session seulement si pas en pause
+            if !self.isPaused {
+                session.startRunning()
+                self.isSessionRunning = session.isRunning
+                print("DEBUG: QR Scanner session started.")
+            } else {
+                print("DEBUG: QR Scanner configured but paused - not starting.")
+            }
         }
     }
     
